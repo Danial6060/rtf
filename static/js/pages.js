@@ -160,6 +160,7 @@ export async function mainPage() {
 export async function messagePage() {
   document.body.innerHTML = `
   <div class="main-content">
+   <button id="backButton">Back</button>
     <div class="all-users"></div>
     <div class="selected-user">
       <div id="chatContainer">
@@ -192,6 +193,7 @@ export async function messagePage() {
   const sendButton = document.getElementById("sendButton");
   const messageInput = document.getElementById("messageInput");
   const messagesContainer = document.getElementById("messages");
+  const backButton = document.getElementById("backButton");
 
   // WebSocket connection
   const socket = new WebSocket('ws://localhost:8080/ws');
@@ -228,6 +230,11 @@ export async function messagePage() {
       event.preventDefault();
       sendButton.click();
     }
+  });
+
+  // Handle back button click
+  document.querySelector("#backButton").addEventListener("click", () => {
+    navigateTo(mainPage);
   });
 
   function sendMessage(content) {
