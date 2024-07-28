@@ -158,26 +158,25 @@ export async function mainPage() {
 }
 
 export async function messagePage() {
-  // const isLoggedIn = await checkIfUserLoggedIn();
-  // console.log(isLoggedIn);
-  // document.addEventListener("DOMContentLoaded", () => {
-  //   if (!isLoggedIn) {
-  //     logoutUser();
-  //     navigateTo(loginPage);
-  //   }
-  // });
-
   document.body.innerHTML = `
   <div class="main-content">
     <div class="all-users"></div>
-    <div class="selected-user">hello</div>
+    <div class="selected-user">
+      <div id="chatContainer">
+        <div id="messages"></div>
+        <div id="inputContainer">
+          <input type="text" id="messageInput" placeholder="Type your message here">
+          <button id="sendButton">Send</button>
+        </div>
+      </div>
+    </div>
   </div>
   `;
 
   const users = await getAllUsers();
   const userContainer = document.querySelector(".all-users");
 
-  // go through all the users
+  // Populate users
   users.forEach((user) => {
     const div = document.createElement("div");
     div.className = "user";
@@ -187,9 +186,70 @@ export async function messagePage() {
       handleUserClick(user);
     });
 
-    // append the user to the container
     userContainer.appendChild(div);
   });
+
+  const sendButton = document.getElementById("sendButton");
+  const messageInput = document.getElementById("messageInput");
+  const messagesContainer = document.getElementById("messages");
+
+  // WebSocket connection
+  const socket = new WebSocket('ws://localhost:8080/ws');
+
+  socket.onopen = () => {
+    console.log('WebSocket connection established');
+  };
+
+  socket.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    displayMessage(msg, 'other-message');
+  };
+
+  socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
+  socket.onclose = () => {
+    console.log('WebSocket connection closed');
+  };
+
+  // Handle sending message
+  sendButton.addEventListener("click", () => {
+    const message = messageInput.value.trim();
+    if (message !== "") {
+      sendMessage(message);
+      messageInput.value = "";
+    }
+  });
+
+  // Allow pressing "Enter" to send message
+  messageInput.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendButton.click();
+    }
+  });
+
+  function sendMessage(content) {
+    const msg = {
+      SenderID: 1, // Replace with actual sender ID
+      ReceiverID: 2, // Replace with actual receiver ID
+      Content: content
+    };
+
+    socket.send(JSON.stringify(msg));
+
+    displayMessage(msg, 'my-message');
+  }
+
+  function displayMessage(msg, className) {
+    const messageElement = document.createElement("div");
+    messageElement.className = `message ${className}`;
+    messageElement.textContent = msg.Content;
+
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
 
   window.localStorage.setItem("currentPage", "chat");
 }

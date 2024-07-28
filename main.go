@@ -79,60 +79,94 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
+// func registerHandler(w http.ResponseWriter, r *http.Request) {
+// 	if r.Method != http.MethodPost {
+// 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+// 		return
+// 	}
+// 	var user *User
+
+// 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+// 		http.Error(w, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		log.Printf("Error hashing password: %v", err)
+// 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	result, err := db.Exec("INSERT INTO users (nickname, age, gender, first_name, last_name, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)",
+// 		user.Nickname, user.Age, user.Gender, user.FirstName, user.LastName, user.Email, hashedPassword)
+// 	if err != nil {
+// 		log.Printf("Error registering user: %v", err)
+// 		http.Error(w, "Error registering user", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	// get the last inserted id from the database
+// 	userID, err := result.LastInsertId()
+// 	if err != nil {
+// 		log.Printf("Error getting last insert ID: %v", err)
+// 		http.Error(w, "Error registering user", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	sessionToken := uuid.New().String()
+// 	_, err = db.Exec("INSERT INTO sessions (user_id, token) VALUES (?, ?)", userID, sessionToken)
+// 	if err != nil {
+// 		log.Printf("Error creating session: %v", err)
+// 		http.Error(w, "Error creating session", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	http.SetCookie(w, &http.Cookie{
+// 		Name:     "session_token",
+// 		Value:    sessionToken,
+// 		Path:     "/",
+// 		HttpOnly: true,
+// 		MaxAge:   int(24 * time.Hour / time.Second), // max age will be 24 hours for the cookie
+// 	})
+
+// 	log.Println("User registered successfully:", user.Nickname)
+// 	w.WriteHeader(http.StatusCreated)
+// }
+
 func registerHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
-	var user *User
+    if r.Method != http.MethodPost {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+        return
+    }
 
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+    nickname := r.FormValue("nickname")
+    age := r.FormValue("age")
+    gender := r.FormValue("gender")
+    firstName := r.FormValue("first_name")
+    lastName := r.FormValue("last_name")
+    email := r.FormValue("email")
+    password := r.FormValue("password")
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("Error hashing password: %v", err)
-		http.Error(w, "Error hashing password", http.StatusInternalServerError)
-		return
-	}
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        log.Printf("Error hashing password: %v", err)
+        http.Error(w, "Error hashing password", http.StatusInternalServerError)
+        return
+    }
 
-	result, err := db.Exec("INSERT INTO users (nickname, age, gender, first_name, last_name, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		user.Nickname, user.Age, user.Gender, user.FirstName, user.LastName, user.Email, hashedPassword)
-	if err != nil {
-		log.Printf("Error registering user: %v", err)
-		http.Error(w, "Error registering user", http.StatusInternalServerError)
-		return
-	}
+    _, err = db.Exec("INSERT INTO users (nickname, age, gender, first_name, last_name, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        nickname, age, gender, firstName, lastName, email, hashedPassword)
+    if err != nil {
+        log.Printf("Error registering user: %v", err)
+        http.Error(w, "Error registering user", http.StatusInternalServerError)
+        return
+    }
 
-	// get the last inserted id from the database
-	userID, err := result.LastInsertId()
-	if err != nil {
-		log.Printf("Error getting last insert ID: %v", err)
-		http.Error(w, "Error registering user", http.StatusInternalServerError)
-		return
-	}
-
-	sessionToken := uuid.New().String()
-	_, err = db.Exec("INSERT INTO sessions (user_id, token) VALUES (?, ?)", userID, sessionToken)
-	if err != nil {
-		log.Printf("Error creating session: %v", err)
-		http.Error(w, "Error creating session", http.StatusInternalServerError)
-		return
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_token",
-		Value:    sessionToken,
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   int(24 * time.Hour / time.Second), // max age will be 24 hours for the cookie
-	})
-
-	log.Println("User registered successfully:", user.Nickname)
-	w.WriteHeader(http.StatusCreated)
+    log.Println("User registered successfully:", nickname)
+    w.WriteHeader(http.StatusCreated)
 }
+
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -406,7 +440,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		_, err = db.Exec("INSERT INTO private_messages (sender_id, receiver_id, content) VALUES (?, ?, ?)", msg.SenderID, msg.ReceiverID, msg.Content)
+
+		_, err = db.Exec("INSERT INTO private_messages (sender_id, receiver_id, content, created_at) VALUES ($1, $2, $3, $4)", msg.SenderID, msg.ReceiverID, msg.Content, time.Now())
 		if err != nil {
 			log.Println("Error inserting message:", err)
 			break
@@ -420,6 +455,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
 
 func getUserIDFromSession(w http.ResponseWriter, r *http.Request) int {
 	cookie, err := r.Cookie("session_token")
