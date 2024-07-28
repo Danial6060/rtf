@@ -430,7 +430,6 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		log.Print("Upgrade:", err)
 		return
 	}
-	defer conn.Close()
 
 	for {
 		var msg Message
@@ -454,6 +453,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
+	defer conn.Close()
+
 }
 
 
@@ -483,6 +484,7 @@ func getUserIDFromSession(w http.ResponseWriter, r *http.Request) int {
 		w.WriteHeader(http.StatusInternalServerError)
 		return -1
 	}
+	
 
 	return userID
 }
