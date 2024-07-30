@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func IsUserLoggedInHandler(w http.ResponseWriter, r *http.Request) {
+func IsUserLoggedInHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {

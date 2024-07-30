@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"time"
 )
 
-func WSHandler(w http.ResponseWriter, r *http.Request) {
+func WSHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("Upgrade:", err)

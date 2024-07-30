@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	data "rtf/Data"
 )
 
-func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
+func CreatePostHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return

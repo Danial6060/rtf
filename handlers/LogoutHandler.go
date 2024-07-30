@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 )
 
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func LogoutHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {

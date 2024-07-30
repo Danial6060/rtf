@@ -1,13 +1,14 @@
 package handlers
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
