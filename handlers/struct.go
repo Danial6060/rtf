@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 var (
-	db       *sql.DB
 	upgrader = websocket.Upgrader{}
 )
 

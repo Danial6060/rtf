@@ -13,9 +13,10 @@ func CommentPostHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := data.GetUserIDFromSession(w, r)
+	userID := data.GetUserIDFromSession(db, w, r)
 	if userID == -1 {
 		log.Println("User not authenticated")
+		http.Error(w, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
 

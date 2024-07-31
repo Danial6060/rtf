@@ -158,6 +158,13 @@ export async function mainPage() {
 }
 
 export async function messagePage() {
+  const isLoggedIn = await checkIfUserLoggedIn();
+
+  if (!isLoggedIn) {
+    navigateTo(loginPage);
+    return;
+  }
+
   document.body.innerHTML = `
   <div class="main-content">
    <button id="backButton">Back</button>
